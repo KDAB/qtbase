@@ -53,8 +53,11 @@
 // We mean it.
 //
 
-#include <QtWidgets/qgraphicseffect.h>
 #include <QtOpenGL/qtopenglglobal.h>
+
+#ifndef QT_NO_GRAPHICSEFFECT
+
+#include <QtWidgets/qgraphicseffect.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -86,5 +89,7 @@ private:
 };
 
 QT_END_NAMESPACE
+
+#endif // QT_NO_GRAPHICSEFFECT
 
 #endif // QGRAPHICSSHADEREFFECT_P_H
