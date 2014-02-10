@@ -420,9 +420,11 @@ bool QCocoaIntegration::hasCapability(QPlatformIntegration::Capability cap) cons
 {
     switch (cap) {
     case ThreadedPixmaps:
+#ifndef QT_NO_OPENGL
     case OpenGL:
     case ThreadedOpenGL:
     case BufferQueueingOpenGL:
+#endif
     case WindowMasks:
     case MultipleWindows:
     case ForeignWindows:
@@ -440,10 +442,12 @@ QPlatformWindow *QCocoaIntegration::createPlatformWindow(QWindow *window) const
     return new QCocoaWindow(window);
 }
 
+#ifndef QT_NO_OPENGL
 QPlatformOpenGLContext *QCocoaIntegration::createPlatformOpenGLContext(QOpenGLContext *context) const
 {
     return new QCocoaGLContext(context->format(), context->shareHandle());
 }
+#endif
 
 QPlatformBackingStore *QCocoaIntegration::createPlatformBackingStore(QWindow *window) const
 {
