@@ -43,7 +43,14 @@
 #include "phantombackingstore.h"
 
 #include <private/qpixmap_raster_p.h>
-#include <private/qfontconfigdatabase_p.h>
+
+#if defined(Q_OS_MAC)
+# include <QtPlatformSupport/private/qcoretextfontdatabase_p.h>
+#elif defined(Q_OS_WINDOWS)
+# include "qwindowsfontdatabase.h"
+#else
+# include <private/qfontconfigdatabase_p.h>
+#endif
 
 #if !defined(Q_OS_WIN)
 #include <QtPlatformSupport/private/qgenericunixeventdispatcher_p.h>
@@ -94,7 +101,13 @@ QPlatformFontDatabase *PhantomIntegration::fontDatabase() const
 {
     static QPlatformFontDatabase *db = 0;
     if (!db) {
+#if defined(Q_OS_MAC)
+        db = new QCoreTextFontDatabase();
+#elif defined(Q_OS_WINDOWS)
+        db = new QWindowsFontDatabase();
+#else
         db = new QFontconfigDatabase();
+#endif
     }
     return db;
 }
