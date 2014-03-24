@@ -1,5 +1,7 @@
 TARGET = qphantom
 
+CONFIG += qpa/genericunixfontdatabase
+
 PLUGIN_TYPE = platforms
 PLUGIN_CLASS_NAME = PhantomIntegrationPlugin
 load(qt_plugin)
