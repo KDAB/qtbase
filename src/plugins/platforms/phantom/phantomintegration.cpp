@@ -46,7 +46,7 @@
 
 #if defined(Q_OS_MAC)
 # include <QtPlatformSupport/private/qcoretextfontdatabase_p.h>
-#elif defined(Q_OS_WINDOWS)
+#elif defined(Q_OS_WIN)
 # include "qwindowsfontdatabase.h"
 #else
 # include <private/qfontconfigdatabase_p.h>
@@ -103,7 +103,7 @@ QPlatformFontDatabase *PhantomIntegration::fontDatabase() const
     if (!db) {
 #if defined(Q_OS_MAC)
         db = new QCoreTextFontDatabase();
-#elif defined(Q_OS_WINDOWS)
+#elif defined(Q_OS_WIN)
         db = new QWindowsFontDatabase();
 #else
         db = new QFontconfigDatabase();
