@@ -428,7 +428,11 @@ bool QSslContext::cacheSession(SSL* ssl)
             unsigned char *data = reinterpret_cast<unsigned char *>(m_sessionASN1.data());
             if (!q_i2d_SSL_SESSION(session, &data))
                 qWarning("could not store persistent version of SSL session");
+#if OPENSSL_VERSION_NUMBER > 0x0090801fL
             m_sessionTicketLifeTimeHint = session->tlsext_tick_lifetime_hint;
+#else
+            m_sessionTicketLifeTimeHint = 3600*4;
+#endif
         }
     }
 
