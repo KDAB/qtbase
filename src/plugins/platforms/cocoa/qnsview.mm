@@ -75,6 +75,53 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
   - (CGFloat)deviceDeltaZ;
 @end
 
+@interface QNSViewMouseMoveHelper : NSObject
+{
+    QNSView *view;
+}
+
+- (id)initWithView:(QNSView *)theView;
+
+- (void)mouseMoved:(NSEvent *)theEvent;
+- (void)mouseEntered:(NSEvent *)theEvent;
+- (void)mouseExited:(NSEvent *)theEvent;
+- (void)cursorUpdate:(NSEvent *)theEvent;
+
+@end
+
+@implementation QNSViewMouseMoveHelper
+
+- (id)initWithView:(QNSView *)theView
+{
+    self = [super init];
+    if (self) {
+        view = theView;
+    }
+    return self;
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+    [view mouseMovedImpl:theEvent];
+}
+
+- (void)mouseEntered:(NSEvent *)theEvent
+{
+    [view mouseEnteredImpl:theEvent];
+}
+
+- (void)mouseExited:(NSEvent *)theEvent
+{
+    [view mouseExitedImpl:theEvent];
+}
+
+- (void)cursorUpdate:(NSEvent *)theEvent
+{
+    [view cursorUpdateImpl:theEvent];
+}
+
+@end
+
 @implementation QNSView
 
 + (void)initialize
@@ -102,6 +149,7 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
         currentCustomDragTypes = 0;
         m_sendUpAsRightButton = false;
         m_inputSource = 0;
+        m_mouseMoveHelper = [[QNSViewMouseMoveHelper alloc] initWithView:self];
 
         if (!touchDevice) {
             touchDevice = new QTouchDevice;
@@ -121,6 +169,7 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
     m_subscribesForGlobalFrameNotifications = false;
     [m_inputSource release];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [m_mouseMoveHelper release];
 
     delete currentCustomDragTypes;
 
@@ -759,13 +808,13 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
                                  | NSTrackingInVisibleRect | NSTrackingMouseMoved | NSTrackingCursorUpdate;
     NSTrackingArea *ta = [[[NSTrackingArea alloc] initWithRect:[self frame]
                                                       options:trackingOptions
-                                                        owner:self
+                                                        owner:m_mouseMoveHelper
                                                      userInfo:nil]
                                                                 autorelease];
     [self addTrackingArea:ta];
 }
 
--(void)cursorUpdate:(NSEvent *)theEvent
+-(void)cursorUpdateImpl:(NSEvent *)theEvent
 {
     Q_UNUSED(theEvent)
     // Set the cursor manually if there is no NSWindow.
@@ -782,10 +831,10 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
         [self addCursorRect:[self visibleRect] cursor:m_platformWindow->m_windowCursor];
 }
 
-- (void)mouseMoved:(NSEvent *)theEvent
+- (void)mouseMovedImpl:(NSEvent *)theEvent
 {
     if (m_window->flags() & Qt::WindowTransparentForInput)
-        return [super mouseMoved:theEvent];
+        return;
 
     QPointF windowPoint;
     QPointF screenPoint;
@@ -812,12 +861,13 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
     [self handleMouseEvent: theEvent];
 }
 
-- (void)mouseEntered:(NSEvent *)theEvent
+- (void)mouseEnteredImpl:(NSEvent *)theEvent
 {
+    Q_UNUSED(theEvent)
     m_platformWindow->m_windowUnderMouse = true;
 
     if (m_window->flags() & Qt::WindowTransparentForInput)
-        return [super mouseEntered:theEvent];
+        return;
 
     // Top-level windows generate enter events for sub-windows.
     if (!m_platformWindow->m_nsWindow)
@@ -830,13 +880,13 @@ static NSString *_q_NSWindowDidChangeOcclusionStateNotification = nil;
     QWindowSystemInterface::handleEnterEvent(m_platformWindow->m_enterLeaveTargetWindow, windowPoint, screenPoint);
 }
 
-- (void)mouseExited:(NSEvent *)theEvent
+- (void)mouseExitedImpl:(NSEvent *)theEvent
 {
+    Q_UNUSED(theEvent);
     m_platformWindow->m_windowUnderMouse = false;
 
     if (m_window->flags() & Qt::WindowTransparentForInput)
-        return [super mouseExited:theEvent];
-    Q_UNUSED(theEvent);
+        return;
 
     // Top-level windows generate leave events for sub-windows.
     if (!m_platformWindow->m_nsWindow)
@@ -1322,7 +1372,7 @@ static QTabletEvent::TabletDevice wacomTabletDevice(NSEvent *theEvent)
     QChar ch = QChar::ReplacementCharacter;
     int keyCode = Qt::Key_unknown;
     if ([characters length] != 0) {
-        if ((modifiers & Qt::MetaModifier) && ([charactersIgnoringModifiers length] != 0))
+        if (((modifiers & Qt::MetaModifier) || (modifiers & Qt::AltModifier)) && ([charactersIgnoringModifiers length] != 0))
             ch = QChar([charactersIgnoringModifiers characterAtIndex:0]);
         else
             ch = QChar([characters characterAtIndex:0]);
