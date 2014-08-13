@@ -67,6 +67,19 @@ static QString qt_convertJString(jstring string)
     return res;
 }
 
+static inline bool exceptionCheckAndClear(JNIEnv *env)
+{
+    if (Q_UNLIKELY(env->ExceptionCheck())) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif // QT_DEBUG
+        env->ExceptionClear();
+        return true;
+    }
+
+    return false;
+}
+
 typedef QHash<QString, jclass> JClassHash;
 Q_GLOBAL_STATIC(JClassHash, cachedClasses)
 
@@ -85,14 +98,8 @@ static jclass getCachedClass(JNIEnv *env, const char *className)
         QJNIObjectPrivate classObject = classLoader.callObjectMethod("loadClass",
                                                                      "(Ljava/lang/String;)Ljava/lang/Class;",
                                                                      stringName.object());
-        if (env->ExceptionCheck()) {
-#ifdef QT_DEBUG
-            env->ExceptionDescribe();
-#endif // QT_DEBUG
-            env->ExceptionClear();
-        }
 
-        if (classObject.isValid())
+        if (!exceptionCheckAndClear(env) && classObject.isValid())
             clazz = static_cast<jclass>(env->NewGlobalRef(classObject.object()));
 
         cachedClasses->insert(key, clazz);
@@ -121,13 +128,8 @@ static jmethodID getCachedMethodID(JNIEnv *env,
         else
             id = env->GetMethodID(clazz, name, sig);
 
-        if (env->ExceptionCheck()) {
+        if (exceptionCheckAndClear(env))
             id = 0;
-#ifdef QT_DEBUG
-            env->ExceptionDescribe();
-#endif // QT_DEBUG
-            env->ExceptionClear();
-        }
 
         cachedMethodID->insert(key, id);
     } else {
@@ -154,13 +156,8 @@ static jfieldID getCachedFieldID(JNIEnv *env,
         else
             id = env->GetFieldID(clazz, name, sig);
 
-        if (env->ExceptionCheck()) {
+        if (exceptionCheckAndClear(env))
             id = 0;
-#ifdef QT_DEBUG
-            env->ExceptionDescribe();
-#endif // QT_DEBUG
-            env->ExceptionClear();
-        }
 
         cachedFieldID->insert(key, id);
     } else {
@@ -724,7 +721,7 @@ jboolean QJNIObjectPrivate::callStaticMethod<jboolean>(jclass clazz,
 {
     va_list args;
     va_start(args, sig);
-    jboolean res = callStaticMethod<jboolean>(clazz, methodName, sig);
+    jboolean res = callStaticMethod<jboolean>(clazz, methodName, sig, args);
     va_end(args);
     return res;
 }
@@ -1029,7 +1026,7 @@ jlong QJNIObjectPrivate::callStaticMethod<jlong>(jclass clazz,
 {
     va_list args;
     va_start(args, sig);
-    jlong res = callStaticMethod<jlong>(clazz, methodName, sig);
+    jlong res = callStaticMethod<jlong>(clazz, methodName, sig, args);
     va_end(args);
     return res;
 }
@@ -1122,7 +1119,7 @@ jdouble QJNIObjectPrivate::callStaticMethod<jdouble>(const char *className,
 {
     va_list args;
     va_start(args, sig);
-    jdouble res = callStaticMethod<jdouble>(className, methodName, sig);
+    jdouble res = callStaticMethod<jdouble>(className, methodName, sig, args);
     va_end(args);
     return res;
 }

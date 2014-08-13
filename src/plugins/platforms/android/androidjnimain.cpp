@@ -413,10 +413,9 @@ namespace QtAndroid
     {
         QMutexLocker lock(&m_surfacesMutex);
         const auto &it = m_surfaces.find(surfaceId);
-        if (it == m_surfaces.end())
-            return;
+        if (it != m_surfaces.end())
+            m_surfaces.remove(surfaceId);
 
-        m_surfaces.remove(surfaceId);
         QJNIEnvironmentPrivate env;
         if (!env)
             return;
@@ -562,13 +561,13 @@ static void setDisplayMetrics(JNIEnv */*env*/, jclass /*clazz*/,
     if (!m_androidPlatformIntegration) {
         QAndroidPlatformIntegration::setDefaultDisplayMetrics(desktopWidthPixels,
                                                               desktopHeightPixels,
-                                                              qRound(double(desktopWidthPixels)  / xdpi * 25.4),
-                                                              qRound(double(desktopHeightPixels) / ydpi * 25.4),
+                                                              qRound(double(widthPixels)  / xdpi * 25.4),
+                                                              qRound(double(heightPixels) / ydpi * 25.4),
                                                               widthPixels,
                                                               heightPixels);
     } else {
-        m_androidPlatformIntegration->setDisplayMetrics(qRound(double(desktopWidthPixels)  / xdpi * 25.4),
-                                                        qRound(double(desktopHeightPixels) / ydpi * 25.4));
+        m_androidPlatformIntegration->setDisplayMetrics(qRound(double(widthPixels)  / xdpi * 25.4),
+                                                        qRound(double(heightPixels) / ydpi * 25.4));
         m_androidPlatformIntegration->setDesktopSize(desktopWidthPixels, desktopHeightPixels);
         m_androidPlatformIntegration->setScreenSize(widthPixels, heightPixels);
     }
@@ -773,7 +772,6 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void */*reserved*/)
     JNIEnv *env = uenv.nativeEnvironment;
     if (!registerNatives(env)
             || !QtAndroidInput::registerNatives(env)
-            || !QtAndroidClipboard::registerNatives(env)
             || !QtAndroidMenu::registerNatives(env)
             || !QtAndroidAccessibility::registerNatives(env)
             || !QtAndroidDialogHelpers::registerNatives(env)) {
