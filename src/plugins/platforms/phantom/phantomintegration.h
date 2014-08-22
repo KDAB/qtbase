@@ -47,6 +47,8 @@
 
 #include <QPixmap>
 
+QT_BEGIN_NAMESPACE
+
 class QWindowSurface;
 
 class PhantomScreen : public QPlatformScreen
@@ -80,5 +82,7 @@ public:
 
     QPlatformFontDatabase *fontDatabase() const;
 };
+
+QT_END_NAMESPACE
 
 #endif // PHANTOMINTEGRATION_H

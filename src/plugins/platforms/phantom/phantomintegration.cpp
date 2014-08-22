@@ -60,6 +60,8 @@
 #include <QtCore/private/qeventdispatcher_win_p.h>
 #endif
 
+QT_BEGIN_NAMESPACE
+
 PhantomIntegration::PhantomIntegration()
 {
     PhantomScreen *mPrimaryScreen = new PhantomScreen();
@@ -124,3 +126,5 @@ QAbstractEventDispatcher *PhantomIntegration::createEventDispatcher() const
     return createUnixEventDispatcher();
 #endif
 }
+
+QT_END_NAMESPACE
