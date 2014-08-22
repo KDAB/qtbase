@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 android:!android-no-sdk: SUBDIRS += android
 
-SUBDIRS += minimal phantom
+SUBDIRS += minimal
 
 !win32|contains(QT_CONFIG, freetype):SUBDIRS += offscreen
 
@@ -40,3 +40,5 @@ contains(QT_CONFIG, kms) {
 }
 
 contains(QT_CONFIG, linuxfb): SUBDIRS += linuxfb
+
+!winrt:!win32: SUBDIRS += phantom
