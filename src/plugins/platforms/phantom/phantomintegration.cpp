@@ -52,11 +52,38 @@
 
 #include <QtPlatformSupport/private/qgenericunixeventdispatcher_p.h>
 
+#include <qpa/qplatformnativeinterface.h>
+#include <qpa/qplatformscreen.h>
+
 QT_BEGIN_NAMESPACE
 
-PhantomIntegration::PhantomIntegration()
+class PhantomNativeInterface : public QPlatformNativeInterface
 {
-    PhantomScreen *mPrimaryScreen = new PhantomScreen();
+public:
+};
+
+class PhantomScreen : public QPlatformScreen
+{
+public:
+    PhantomScreen()
+        : mDepth(32), mFormat(QImage::Format_ARGB32_Premultiplied) {}
+
+    QRect geometry() const { return mGeometry; }
+    QSizeF physicalSize() const { return mPhysicalSize; }
+    int depth() const { return mDepth; }
+    QImage::Format format() const { return mFormat; }
+
+public:
+    QRect mGeometry;
+    int mDepth;
+    QImage::Format mFormat;
+    QSizeF mPhysicalSize;
+};
+
+PhantomIntegration::PhantomIntegration()
+  : m_nativeInterface(new PhantomNativeInterface)
+{
+    PhantomScreen *screen = new PhantomScreen();
 
     // Simulate typical desktop screen
     int width = 1024;
@@ -64,13 +91,18 @@ PhantomIntegration::PhantomIntegration()
     int dpi = 72;
     qreal physicalWidth = width * 25.4 / dpi;
     qreal physicalHeight = height * 25.4 / dpi;
-    mPrimaryScreen->mGeometry = QRect(0, 0, width, height);
-    mPrimaryScreen->mPhysicalSize = QSizeF(physicalWidth, physicalHeight);
+    screen->mGeometry = QRect(0, 0, width, height);
+    screen->mPhysicalSize = QSizeF(physicalWidth, physicalHeight);
 
-    mPrimaryScreen->mDepth = 32;
-    mPrimaryScreen->mFormat = QImage::Format_ARGB32_Premultiplied;
+    screen->mDepth = 32;
+    screen->mFormat = QImage::Format_ARGB32_Premultiplied;
 
-    screenAdded(mPrimaryScreen);
+    screenAdded(screen);
+}
+
+PhantomIntegration::~PhantomIntegration()
+{
+
 }
 
 bool PhantomIntegration::hasCapability(QPlatformIntegration::Capability cap) const
@@ -107,6 +139,11 @@ QPlatformFontDatabase *PhantomIntegration::fontDatabase() const
 QAbstractEventDispatcher *PhantomIntegration::createEventDispatcher() const
 {
     return createUnixEventDispatcher();
+}
+
+QPlatformNativeInterface *PhantomIntegration::nativeInterface() const
+{
+    return m_nativeInterface.data();
 }
 
 QT_END_NAMESPACE
