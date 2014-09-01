@@ -2188,16 +2188,19 @@ QStringList QCoreApplication::arguments()
     char ** const avEnd = av + ac;
 
     const QStringList allArguments = qWinCmdArgs(cmdline);
-    Q_ASSERT(allArguments.size() == origArgc);
-    for (int i = 0; i < origArgc; ++i)
-        if (std::find(av, avEnd, origArgv[i]) != avEnd)
-            list.push_back(allArguments.at(i));
+    if (allArguments.size() == origArgc) {
+        Q_ASSERT(allArguments.size() == origArgc);
+        for (int i = 0; i < origArgc; ++i) {
+            if (std::find(av, avEnd, origArgv[i]) != avEnd)
+                list.push_back(allArguments.at(i));
+        }
+        return list;
+    }
 
-#else
+#endif
     for (int a = 0; a < ac; ++a) {
         list << QString::fromLocal8Bit(av[a]);
     }
-#endif
 
     return list;
 }
