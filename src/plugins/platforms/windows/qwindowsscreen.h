@@ -93,7 +93,7 @@ public:
     virtual int depth() const { return m_data.depth; }
     virtual QImage::Format format() const { return m_data.format; }
     virtual QSizeF physicalSize() const { return m_data.physicalSizeMM; }
-    virtual QDpi logicalDpi() const { return m_data.dpi; }
+    virtual QDpi logicalDpi() const { return QDpi(72, 72); /* PHANTOMJS enforces 72 DPI to be platform independent. return m_data.dpi; */ }
     virtual qreal refreshRate() const { return m_data.refreshRateHz; }
     virtual QString name() const { return m_data.name; }
     virtual Qt::ScreenOrientation primaryOrientation() { return m_data.orientation; }
